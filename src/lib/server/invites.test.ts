@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { and, eq } from 'drizzle-orm';
 import { db } from './db';
-import { invites, memberships } from './db/schema';
+import { auditLog, invites, memberships } from './db/schema';
 import { createLeague } from './leagues';
 import { createInvite, getInviteDetails, redeemInviteStandalone } from './invites';
 import { hashToken } from './auth/tokens';
@@ -78,6 +78,14 @@ describe('invites', () => {
 			.where(and(eq(memberships.leagueId, league.id), eq(memberships.userId, member.id)));
 
 		expect(rows).toHaveLength(1);
+
+		const auditRows = await db
+			.select()
+			.from(auditLog)
+			.where(and(eq(auditLog.actorUserId, member.id), eq(auditLog.action, 'membership_created')));
+
+		expect(auditRows).toHaveLength(1);
+		expect(auditRows[0].targetId).toBe(rows[0].id);
 	});
 
 	it('enforces max uses', async () => {

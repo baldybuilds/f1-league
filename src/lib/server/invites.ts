@@ -9,6 +9,7 @@ import {
 	users
 } from '$lib/server/db/schema';
 import { generateToken, hashToken } from '$lib/server/auth/tokens';
+import { recordAuditEvent } from '$lib/server/audit-log';
 
 interface CreateInviteOptions {
 	expiresInDays?: number;
@@ -73,11 +74,22 @@ export async function redeemInvite(tx: Transaction, inviteId: string, userId: st
 
 	if (existing) return;
 
-	await tx.insert(memberships).values({
-		leagueId: invite.leagueId,
-		userId,
-		role: 'member',
-		status: invite.approvalRequired ? 'pending' : 'active'
+	const [membership] = await tx
+		.insert(memberships)
+		.values({
+			leagueId: invite.leagueId,
+			userId,
+			role: 'member',
+			status: invite.approvalRequired ? 'pending' : 'active'
+		})
+		.returning();
+
+	await recordAuditEvent(tx, {
+		actorUserId: userId,
+		action: 'membership_created',
+		targetType: 'membership',
+		targetId: membership.id,
+		metadata: { role: membership.role, status: membership.status, via: 'invite' }
 	});
 
 	const [season] = await tx

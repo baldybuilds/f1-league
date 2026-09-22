@@ -9,7 +9,8 @@ import {
 	memberships,
 	leagueSeasons,
 	invites,
-	leagues
+	leagues,
+	auditLog
 } from './db/schema';
 
 let counter = 0;
@@ -37,6 +38,7 @@ export async function createTestUser(overrides: Partial<typeof users.$inferInser
 /** Deletes a test user and everything that directly references it. Does not
  * touch leagues the user owns - use deleteTestLeague first for those. */
 export async function deleteTestUser(userId: string, email: string) {
+	await db.delete(auditLog).where(eq(auditLog.actorUserId, userId));
 	await db.delete(authSessions).where(eq(authSessions.userId, userId));
 	await db.delete(loginTokens).where(eq(loginTokens.email, email));
 	await db.delete(policyAcceptances).where(eq(policyAcceptances.userId, userId));
