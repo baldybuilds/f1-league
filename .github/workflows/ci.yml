@@ -46,6 +46,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APP_ENV: development
+      # Placeholder: env.ts only checks this is set, nothing queries the DB
+      # in this test yet. Use a real secret here once a route does.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -55,6 +58,17 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps
       - run: npm run test:e2e
+
+  personal-data-map:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run check:data-map
 
   npm-audit:
     runs-on: ubuntu-latest
