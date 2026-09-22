@@ -33,7 +33,7 @@
 		</CardHeader>
 		<CardContent class="flex gap-3">
 			{#if data.user}
-				<Button href={resolve('/leagues/new')}>Create a league</Button>
+				<Button href={resolve('/leagues')}>My leagues</Button>
 			{:else}
 				<Button href={resolve('/login')}>Sign in</Button>
 			{/if}
