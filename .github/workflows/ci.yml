@@ -64,7 +64,10 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
-      - run: npm audit --audit-level=high
+      # --omit=dev: only shipped code is audited here. Dev-tool CVEs (e.g. deep in
+      # netlify-cli's own dependency tree) are tracked separately since they don't
+      # ship, and are often unfixable on our end until the tool's next release.
+      - run: npm audit --omit=dev --audit-level=high
 
   secret-scan:
     runs-on: ubuntu-latest

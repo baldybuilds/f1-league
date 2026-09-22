@@ -30,6 +30,7 @@
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.19.0",
 		"globals": "^17.6.0",
+		"netlify-cli": "^27.8.0",
 		"prettier": "^3.8.3",
 		"prettier-plugin-svelte": "^4.1.0",
 		"svelte": "^5.56.1",
@@ -40,6 +41,12 @@
 		"vitest": "^4.1.8"
 	},
 	"dependencies": {
+		"@netlify/database": "^2.0.1",
 		"valibot": "^1.5.0"
+	},
+	"overrides": {
+		"@sveltejs/kit": {
+			"cookie": "0.7.2"
+		}
 	}
 }

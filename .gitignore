@@ -8,6 +8,7 @@ documentation/
 .vercel
 .netlify
 .wrangler
+deno.lock
 /.svelte-kit
 /build
 
