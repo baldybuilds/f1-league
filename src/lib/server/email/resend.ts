@@ -16,7 +16,10 @@ function isAllowed(to: string): boolean {
 
 export async function sendEmail({ to, subject, html }: SendEmailInput): Promise<void> {
 	if (!isAllowed(to)) {
-		console.log(`[email skipped, not on allowlist] to=${to} subject=${subject}`);
+		// Not sent, per the non-production allow-list. Logged in full (not just
+		// skipped) so local/dev testing can still grab the link - matches
+		// PLAN.md's environment table: local email is "none sent (logged locally)".
+		console.log(`[email not sent, not on allowlist] to=${to} subject=${subject}\n${html}`);
 		return;
 	}
 

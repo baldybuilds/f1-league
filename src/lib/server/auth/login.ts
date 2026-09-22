@@ -8,16 +8,19 @@ const LOGIN_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 /** Always creates a token and sends an email, regardless of whether the address
  * belongs to an existing user - that's what keeps the caller's response identical
- * for known and unknown addresses. */
+ * for known and unknown addresses. `inviteId` binds the token to an invite for
+ * first-time sign-ups (PLAN.md: no open sign-up - a new account needs one). */
 export async function createLoginToken(
 	email: string,
-	confirmUrl: (token: string) => string
+	confirmUrl: (token: string) => string,
+	inviteId?: string
 ): Promise<void> {
 	const { token, hash } = generateToken();
 
 	await db.insert(loginTokens).values({
 		email,
 		tokenHash: hash,
+		inviteId,
 		expiresAt: new Date(Date.now() + LOGIN_TOKEN_TTL_MS)
 	});
 
@@ -28,9 +31,17 @@ export async function createLoginToken(
 	});
 }
 
-/** Validates and consumes a login token, creating the user on first sign-in with
- * placeholder profile fields - real onboarding replaces these in a later pass. */
-export async function consumeLoginToken(rawToken: string) {
+export interface ConsumeLoginTokenResult {
+	user: typeof users.$inferSelect;
+	isNewUser: boolean;
+	inviteId: string | null;
+}
+
+/** Validates and consumes a login token. Rejects sign-up for a brand-new email
+ * with no invite attached (no open sign-up). A new user gets a minimal row
+ * (age_confirmed_at left null, i.e. not onboarded yet) - the onboarding route
+ * fills in the rest. */
+export async function consumeLoginToken(rawToken: string): Promise<ConsumeLoginTokenResult | null> {
 	const hash = hashToken(rawToken);
 	const now = new Date();
 
@@ -44,7 +55,11 @@ export async function consumeLoginToken(rawToken: string) {
 	await db.update(loginTokens).set({ consumedAt: now }).where(eq(loginTokens.id, record.id));
 
 	const [existingUser] = await db.select().from(users).where(eq(users.email, record.email));
-	if (existingUser) return existingUser;
+	if (existingUser) {
+		return { user: existingUser, isNewUser: false, inviteId: record.inviteId };
+	}
+
+	if (!record.inviteId) return null;
 
 	const [newUser] = await db
 		.insert(users)
@@ -56,5 +71,5 @@ export async function consumeLoginToken(rawToken: string) {
 		})
 		.returning();
 
-	return newUser;
+	return { user: newUser, isNewUser: true, inviteId: record.inviteId };
 }
