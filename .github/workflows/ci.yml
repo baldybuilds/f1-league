@@ -33,6 +33,15 @@ jobs:
 
   unit-tests:
     runs-on: ubuntu-latest
+    # Several tests hit the real Neon `development` branch directly (session,
+    # login-token, league and invite flows) - they create and clean up their
+    # own rows. Secrets aren't available to `pull_request` runs triggered
+    # from a fork, so this job would fail for an external contributor's PR;
+    # not a concern while this stays a private/friends-only repo.
+    env:
+      APP_ENV: development
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      RESEND_API_KEY: ci-placeholder
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
