@@ -9,5 +9,15 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	event.locals.user = rawToken ? await validateSession(rawToken) : null;
 
-	return resolve(event);
+	const response = await resolve(event);
+
+	// CSP (with nonces) comes from SvelteKit's own kit.csp config (vite.config.ts).
+	// netlify.toml's [[headers]] doesn't reliably apply to SSR function responses
+	// (only static assets), so the rest are set here instead.
+	response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+	response.headers.set('X-Content-Type-Options', 'nosniff');
+	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+	response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+
+	return response;
 };

@@ -1,4 +1,4 @@
-node_modules
+node_modules/
 
 # Planning docs (kept local, not published)
 documentation/
