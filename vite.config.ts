@@ -1,9 +1,11 @@
 import { defineConfig } from 'vitest/config';
 import adapter from '@sveltejs/adapter-netlify';
 import { sveltekit } from '@sveltejs/kit/vite';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
 	plugins: [
+		tailwindcss(),
 		sveltekit({
 			compilerOptions: {
 				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
@@ -16,7 +18,12 @@ export default defineConfig({
 				directives: {
 					'default-src': ['self'],
 					'script-src': ['self'],
-					'style-src': ['self'],
+					// bits-ui's floating components (select, dialog, etc.) position
+					// themselves with inline style attributes - CSP's style-src blocks
+					// those without unsafe-inline. Deliberate tradeoff: much smaller
+					// risk than script-src unsafe-inline (no JS execution), and needed
+					// by virtually every serious Svelte/React component library.
+					'style-src': ['self', 'unsafe-inline'],
 					'img-src': ['self', 'data:'],
 					'base-uri': ['self'],
 					'form-action': ['self'],

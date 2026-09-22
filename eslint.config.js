@@ -37,5 +37,14 @@ export default defineConfig(
 		// Override or add rule settings here, such as:
 		// 'svelte/button-has-type': 'error'
 		rules: {}
+	},
+	{
+		// Vendored shadcn-svelte components (src/lib/components/ui) - copy-paste
+		// generated code we own but don't hand-edit for style. Button accepts a
+		// generic href prop from callers that already resolved it themselves.
+		files: ['src/lib/components/ui/**'],
+		rules: {
+			'svelte/no-navigation-without-resolve': 'off'
+		}
 	}
 );
