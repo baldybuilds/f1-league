@@ -2,6 +2,16 @@
   command = "npm run build"
   publish = "build"
 
+# CSP (with nonces) is set by SvelteKit itself (see vite.config.ts's csp config) -
+# these are the headers it doesn't cover.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
 [context.production.environment]
   APP_ENV = "production"
 
