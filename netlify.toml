@@ -7,9 +7,12 @@
 
 [context.branch-deploy.environment]
   APP_ENV = "development"
+  EMAIL_ALLOWLIST = "obsidianhexer@proton.me"
 
 [context.deploy-preview.environment]
   APP_ENV = "development"
+  EMAIL_ALLOWLIST = "obsidianhexer@proton.me"
 
 [context.dev.environment]
   APP_ENV = "development"
+  EMAIL_ALLOWLIST = "obsidianhexer@proton.me"

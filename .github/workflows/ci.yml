@@ -46,9 +46,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APP_ENV: development
-      # Placeholder: env.ts only checks this is set, nothing queries the DB
-      # in this test yet. Use a real secret here once a route does.
+      # Placeholders: env.ts only checks these are set. Nothing in this test
+      # queries the DB or sends email yet - use real secrets once one does.
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      RESEND_API_KEY: ci-placeholder
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
