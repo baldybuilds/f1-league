@@ -1,3 +1,4 @@
+import { env as privateEnv } from '$env/dynamic/private';
 import * as v from 'valibot';
 
 const EnvSchema = v.object({
@@ -5,7 +6,7 @@ const EnvSchema = v.object({
 });
 
 const result = v.safeParse(EnvSchema, {
-	APP_ENV: process.env.APP_ENV
+	APP_ENV: privateEnv.APP_ENV
 });
 
 if (!result.success) {
