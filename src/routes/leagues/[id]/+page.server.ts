@@ -15,6 +15,7 @@ import { requireMember } from '$lib/server/authorization';
 import { createInvite } from '$lib/server/invites';
 import { recordAuditEvent } from '$lib/server/audit-log';
 import { enterResult } from '$lib/server/results';
+import { archiveSeason } from '$lib/server/archive';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	if (!locals.user) redirect(303, '/login');
@@ -92,7 +93,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		invites: leagueInvites,
 		isAdminOrOwner,
 		roundNeedingResult: roundNeedingResult ?? null,
-		drivers: rosterDrivers
+		drivers: rosterDrivers,
+		teams: [...new Set(rosterDrivers.map((d) => d.team))].sort()
 	};
 };
 
@@ -193,5 +195,31 @@ export const actions: Actions = {
 		}
 
 		return { resultSuccess: true };
+	},
+
+	archiveSeason: async ({ request, params, locals }) => {
+		if (!locals.user) redirect(303, '/login');
+		await requireMember(locals.user.id, params.id, 'admin');
+
+		const formData = await request.formData();
+		const wdcWinnerDriverId = String(formData.get('wdcWinnerDriverId') ?? '');
+		const wccWinnerTeam = String(formData.get('wccWinnerTeam') ?? '');
+		if (!wdcWinnerDriverId || !wccWinnerTeam) {
+			return fail(400, { archiveError: 'Pick both a WDC winner and a WCC winner.' });
+		}
+
+		try {
+			await archiveSeason({
+				leagueId: params.id,
+				wdcWinnerDriverId,
+				wccWinnerTeam,
+				actorUserId: locals.user.id
+			});
+		} catch (err) {
+			const message = err instanceof Error ? err.message : 'Could not archive the season.';
+			return fail(400, { archiveError: message });
+		}
+
+		return { archiveSuccess: true };
 	}
 };

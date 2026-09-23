@@ -1,8 +1,8 @@
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
-import { leagueSeasons, scoreEvents, users } from '$lib/server/db/schema';
+import { leagueSeasons, scoreEvents, seasonStandings, users } from '$lib/server/db/schema';
 import { requireMember } from '$lib/server/authorization';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -12,9 +12,31 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const [season] = await db
 		.select()
 		.from(leagueSeasons)
-		.where(and(eq(leagueSeasons.leagueId, params.id), eq(leagueSeasons.status, 'active')));
+		.where(eq(leagueSeasons.leagueId, params.id))
+		.orderBy(desc(leagueSeasons.year));
 
-	if (!season) return { season: null, standings: [] };
+	if (!season || (season.status !== 'active' && season.status !== 'archived')) {
+		return { season: null, standings: [], archived: false as const };
+	}
+
+	if (season.status === 'archived') {
+		// Frozen at archive time - reading from score_events here would let a
+		// later scoring-code change alter a supposedly-immutable final table.
+		const standings = await db
+			.select({
+				userId: seasonStandings.userId,
+				displayName: users.displayName,
+				avatarColour: users.avatarColour,
+				totalPoints: seasonStandings.totalPoints,
+				rank: seasonStandings.rank
+			})
+			.from(seasonStandings)
+			.innerJoin(users, eq(seasonStandings.userId, users.id))
+			.where(eq(seasonStandings.leagueSeasonId, season.id))
+			.orderBy(seasonStandings.rank);
+
+		return { season, standings, archived: true as const };
+	}
 
 	const standings = await db
 		.select({
@@ -30,5 +52,5 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		.groupBy(scoreEvents.userId, users.displayName, users.avatarColour)
 		.orderBy(desc(sql`sum(${scoreEvents.points})`));
 
-	return { season, standings };
+	return { season, standings, archived: false as const };
 };

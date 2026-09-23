@@ -18,6 +18,7 @@
 			<a href={resolve('/')} class="text-lg font-semibold tracking-tight">Paddock Picks</a>
 			{#if data.user}
 				<div class="flex items-center gap-3">
+					<Button href={resolve('/career')} variant="ghost" size="sm">Career</Button>
 					<span class="text-muted-foreground text-sm">{data.user.email}</span>
 					<form method="POST" action={resolve('/logout')}>
 						<Button type="submit" variant="ghost" size="sm">Sign out</Button>

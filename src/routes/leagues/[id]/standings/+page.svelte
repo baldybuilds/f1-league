@@ -21,25 +21,41 @@
 	{:else}
 		<Card>
 			<CardHeader>
-				<CardTitle>{data.season.year} season</CardTitle>
+				<CardTitle>{data.season.year} season{data.archived ? ' - archived' : ''}</CardTitle>
 			</CardHeader>
 			<CardContent class="flex flex-col gap-3">
-				{#each data.standings as row, i (row.userId)}
-					<div class="flex items-center justify-between">
-						<div class="flex items-center gap-3">
-							<Badge variant="outline">{i + 1}</Badge>
-							<span
-								class="border-border inline-block size-3 rounded-full border"
-								style:background-color={row.avatarColour}
-							></span>
-							<span class="text-sm">{row.displayName}</span>
+				{#if data.archived}
+					{#each data.standings as row (row.userId)}
+						<div class="flex items-center justify-between">
+							<div class="flex items-center gap-3">
+								<Badge variant="outline">{row.rank}</Badge>
+								<span
+									class="border-border inline-block size-3 rounded-full border"
+									style:background-color={row.avatarColour}
+								></span>
+								<span class="text-sm">{row.displayName}</span>
+							</div>
+							<span class="text-sm font-semibold">{row.totalPoints} pts</span>
 						</div>
-						<div class="flex items-center gap-3 text-sm">
-							<span class="text-muted-foreground">{row.roundsScored} rounds</span>
-							<span class="font-semibold">{row.totalPoints} pts</span>
+					{/each}
+				{:else}
+					{#each data.standings as row, i (row.userId)}
+						<div class="flex items-center justify-between">
+							<div class="flex items-center gap-3">
+								<Badge variant="outline">{i + 1}</Badge>
+								<span
+									class="border-border inline-block size-3 rounded-full border"
+									style:background-color={row.avatarColour}
+								></span>
+								<span class="text-sm">{row.displayName}</span>
+							</div>
+							<div class="flex items-center gap-3 text-sm">
+								<span class="text-muted-foreground">{row.roundsScored} rounds</span>
+								<span class="font-semibold">{row.totalPoints} pts</span>
+							</div>
 						</div>
-					</div>
-				{/each}
+					{/each}
+				{/if}
 			</CardContent>
 		</Card>
 	{/if}

@@ -9,6 +9,7 @@ import {
 	uniqueIndex,
 	uuid
 } from 'drizzle-orm/pg-core';
+import type { ScoreBreakdown } from '../scoring';
 
 export const reminderPreferenceEnum = pgEnum('reminder_preference', [
 	'email',
@@ -132,6 +133,8 @@ export const leagueSeasons = pgTable('league_seasons', {
 	status: leagueSeasonStatusEnum('status').notNull().default('setup'),
 	settings: jsonb('settings').notNull().default({}),
 	scoringRulesVersion: text('scoring_rules_version').notNull(),
+	wdcWinnerDriverId: uuid('wdc_winner_driver_id').references(() => drivers.id),
+	wccWinnerTeam: text('wcc_winner_team'),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
 });
@@ -256,7 +259,10 @@ export const scoreEvents = pgTable(
 			.notNull()
 			.references(() => rounds.id),
 		points: integer('points').notNull(),
-		breakdown: jsonb('breakdown').notNull().default({}),
+		breakdown: jsonb('breakdown')
+			.$type<ScoreBreakdown>()
+			.notNull()
+			.default({} as ScoreBreakdown),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 	},
 	(table) => [
@@ -264,6 +270,53 @@ export const scoreEvents = pgTable(
 			table.leagueSeasonId,
 			table.userId,
 			table.roundId
+		)
+	]
+);
+
+export const seasonPicks = pgTable(
+	'season_picks',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		leagueSeasonId: uuid('league_season_id')
+			.notNull()
+			.references(() => leagueSeasons.id),
+		userId: uuid('user_id')
+			.notNull()
+			.references(() => users.id),
+		wdcDriverId: uuid('wdc_driver_id')
+			.notNull()
+			.references(() => drivers.id),
+		wccTeam: text('wcc_team').notNull(),
+		submittedAt: timestamp('submitted_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => [
+		uniqueIndex('season_picks_league_season_id_user_id_key').on(table.leagueSeasonId, table.userId)
+	]
+);
+
+export const seasonStandings = pgTable(
+	'season_standings',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		leagueSeasonId: uuid('league_season_id')
+			.notNull()
+			.references(() => leagueSeasons.id),
+		userId: uuid('user_id')
+			.notNull()
+			.references(() => users.id),
+		regularPoints: integer('regular_points').notNull(),
+		wdcBonus: integer('wdc_bonus').notNull().default(0),
+		wccBonus: integer('wcc_bonus').notNull().default(0),
+		totalPoints: integer('total_points').notNull(),
+		rank: integer('rank').notNull(),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => [
+		uniqueIndex('season_standings_league_season_id_user_id_key').on(
+			table.leagueSeasonId,
+			table.userId
 		)
 	]
 );

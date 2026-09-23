@@ -59,6 +59,8 @@ export const personalDataMap: Record<string, DataClassification> = {
 	'league_seasons.status': 'non-personal',
 	'league_seasons.settings': 'non-personal',
 	'league_seasons.scoring_rules_version': 'non-personal',
+	'league_seasons.wdc_winner_driver_id': 'non-personal',
+	'league_seasons.wcc_winner_team': 'non-personal',
 	'league_seasons.created_at': 'non-personal',
 	'league_seasons.updated_at': 'non-personal',
 
@@ -127,6 +129,24 @@ export const personalDataMap: Record<string, DataClassification> = {
 	'score_events.points': 'personal',
 	'score_events.breakdown': 'personal',
 	'score_events.created_at': 'non-personal',
+
+	'season_picks.id': 'non-personal',
+	'season_picks.league_season_id': 'non-personal',
+	'season_picks.user_id': 'non-personal',
+	'season_picks.wdc_driver_id': 'personal',
+	'season_picks.wcc_team': 'personal',
+	'season_picks.submitted_at': 'personal',
+	'season_picks.updated_at': 'personal',
+
+	'season_standings.id': 'non-personal',
+	'season_standings.league_season_id': 'non-personal',
+	'season_standings.user_id': 'non-personal',
+	'season_standings.regular_points': 'personal',
+	'season_standings.wdc_bonus': 'personal',
+	'season_standings.wcc_bonus': 'personal',
+	'season_standings.total_points': 'personal',
+	'season_standings.rank': 'personal',
+	'season_standings.created_at': 'non-personal',
 
 	// metadata must never have raw PII written into it - enforced by review,
 	// not by this map, since its shape varies per audit action.

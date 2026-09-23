@@ -27,6 +27,8 @@
 	let resultP1 = $state('');
 	let resultP2 = $state('');
 	let resultP3 = $state('');
+	let wdcWinnerDriverId = $state('');
+	let wccWinnerTeam = $state('');
 </script>
 
 <div class="flex flex-col gap-6">
@@ -55,9 +57,26 @@
 						>Make your pick</Button
 					>
 					<Button
+						href={resolve('/leagues/[id]/season-pick', { id: data.league.id })}
+						variant="outline">Season pick</Button
+					>
+					<Button
 						href={resolve('/leagues/[id]/standings', { id: data.league.id })}
 						variant="outline">Standings</Button
 					>
+					<Button
+						href={resolve('/leagues/[id]/my-season', { id: data.league.id })}
+						variant="outline">My season</Button
+					>
+				{:else if data.season?.status === 'archived'}
+					<Button href={resolve('/leagues/[id]/standings', { id: data.league.id })}
+						>Final standings</Button
+					>
+					<Button
+						href={resolve('/leagues/[id]/my-season', { id: data.league.id })}
+						variant="outline">My season</Button
+					>
+					<p class="text-muted-foreground text-sm">This season is archived - results are final.</p>
 				{:else if data.isAdminOrOwner && data.season?.status === 'setup'}
 					<form method="POST" action="?/activateSeason" use:enhance>
 						<Button type="submit">Activate season</Button>
@@ -143,6 +162,62 @@
 						</div>
 
 						<Button type="submit">Save result</Button>
+					</form>
+				</CardContent>
+			</Card>
+		{/if}
+
+		{#if data.isAdminOrOwner && data.season?.status === 'active'}
+			<Card>
+				<CardHeader>
+					<CardTitle>Archive season</CardTitle>
+					<CardDescription>
+						Confirm the WDC/WCC winners and freeze the final table. This can't be undone.
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					{#if form?.archiveError}
+						<Alert variant="destructive" class="mb-4">
+							<AlertDescription>{form.archiveError}</AlertDescription>
+						</Alert>
+					{:else if form?.archiveSuccess}
+						<Alert class="mb-4">
+							<AlertDescription>Season archived.</AlertDescription>
+						</Alert>
+					{/if}
+
+					<form method="POST" action="?/archiveSeason" use:enhance class="flex flex-col gap-4">
+						<div class="space-y-2">
+							<Label for="wdcWinnerDriverId">WDC winner</Label>
+							<Select type="single" name="wdcWinnerDriverId" bind:value={wdcWinnerDriverId}>
+								<SelectTrigger id="wdcWinnerDriverId" class="w-full">
+									<SelectValue placeholder="Choose a driver" />
+								</SelectTrigger>
+								<SelectContent>
+									{#each data.drivers as driver (driver.id)}
+										<SelectItem value={driver.id}
+											>{driver.code} - {driver.name} ({driver.team})</SelectItem
+										>
+									{/each}
+								</SelectContent>
+							</Select>
+						</div>
+
+						<div class="space-y-2">
+							<Label for="wccWinnerTeam">WCC winner</Label>
+							<Select type="single" name="wccWinnerTeam" bind:value={wccWinnerTeam}>
+								<SelectTrigger id="wccWinnerTeam" class="w-full">
+									<SelectValue placeholder="Choose a team" />
+								</SelectTrigger>
+								<SelectContent>
+									{#each data.teams as team (team)}
+										<SelectItem value={team}>{team}</SelectItem>
+									{/each}
+								</SelectContent>
+							</Select>
+						</div>
+
+						<Button type="submit" variant="destructive">Archive season</Button>
 					</form>
 				</CardContent>
 			</Card>
