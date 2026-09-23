@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import LeagueNav from '$lib/components/league-nav.svelte';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
@@ -29,15 +30,21 @@
 	let resultP3 = $state('');
 	let wdcWinnerDriverId = $state('');
 	let wccWinnerTeam = $state('');
+
+	function confirmArchive(event: SubmitEvent) {
+		if (!confirm("Archive the season? This can't be undone.")) {
+			event.preventDefault();
+		}
+	}
 </script>
 
 <div class="flex flex-col gap-6">
-	<div>
-		<h1 class="text-2xl font-semibold tracking-tight">{data.league.name}</h1>
-		<p class="text-muted-foreground text-sm">
-			{data.season?.year} season - {data.season?.status}
-		</p>
-	</div>
+	<LeagueNav
+		leagueId={data.league.id}
+		leagueName={data.league.name}
+		seasonStatus={data.season?.status ?? null}
+		activePage="dashboard"
+	/>
 
 	{#if data.membership.status === 'pending'}
 		<Alert>
@@ -89,6 +96,12 @@
 				{/if}
 			</CardContent>
 		</Card>
+
+		{#if data.isAdminOrOwner}
+			<h2 class="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+				Admin tools
+			</h2>
+		{/if}
 
 		{#if data.isAdminOrOwner && data.roundNeedingResult}
 			<Card>
@@ -186,7 +199,13 @@
 						</Alert>
 					{/if}
 
-					<form method="POST" action="?/archiveSeason" use:enhance class="flex flex-col gap-4">
+					<form
+						method="POST"
+						action="?/archiveSeason"
+						use:enhance
+						onsubmit={confirmArchive}
+						class="flex flex-col gap-4"
+					>
 						<div class="space-y-2">
 							<Label for="wdcWinnerDriverId">WDC winner</Label>
 							<Select type="single" name="wdcWinnerDriverId" bind:value={wdcWinnerDriverId}>

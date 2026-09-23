@@ -17,9 +17,11 @@
 		<div class="mx-auto flex max-w-2xl items-center justify-between px-4 py-4">
 			<a href={resolve('/')} class="text-lg font-semibold tracking-tight">Paddock Picks</a>
 			{#if data.user}
-				<div class="flex items-center gap-3">
+				<div class="flex min-w-0 items-center gap-3">
 					<Button href={resolve('/career')} variant="ghost" size="sm">Career</Button>
-					<span class="text-muted-foreground text-sm">{data.user.email}</span>
+					<span class="text-muted-foreground hidden max-w-[10rem] truncate text-sm sm:inline"
+						>{data.user.email}</span
+					>
 					<form method="POST" action={resolve('/logout')}>
 						<Button type="submit" variant="ghost" size="sm">Sign out</Button>
 					</form>

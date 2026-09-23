@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { untrack } from 'svelte';
+	import LeagueNav from '$lib/components/league-nav.svelte';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Button } from '$lib/components/ui/button';
 	import {
@@ -27,12 +28,15 @@
 </script>
 
 <div class="flex flex-col gap-6">
-	<div>
-		<h1 class="text-2xl font-semibold tracking-tight">Season pick</h1>
-		<p class="text-muted-foreground text-sm">
-			Pick the drivers' and constructors' champions for the season. Locks when round 1 starts.
-		</p>
-	</div>
+	<LeagueNav
+		leagueId={data.leagueId}
+		leagueName={data.leagueName}
+		seasonStatus={data.seasonStatus}
+		activePage="season-pick"
+	/>
+	<p class="text-muted-foreground -mt-4 text-sm">
+		Pick the drivers' and constructors' champions for the season. Locks when round 1 starts.
+	</p>
 
 	{#if !data.season}
 		<Alert>

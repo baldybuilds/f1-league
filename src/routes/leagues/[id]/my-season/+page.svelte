@@ -1,4 +1,5 @@
 <script lang="ts">
+	import LeagueNav from '$lib/components/league-nav.svelte';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
@@ -21,7 +22,12 @@
 </script>
 
 <div class="flex flex-col gap-6">
-	<h1 class="text-2xl font-semibold tracking-tight">My season</h1>
+	<LeagueNav
+		leagueId={data.leagueId}
+		leagueName={data.leagueName}
+		seasonStatus={data.seasonStatus}
+		activePage="my-season"
+	/>
 
 	{#if !data.season}
 		<Alert>

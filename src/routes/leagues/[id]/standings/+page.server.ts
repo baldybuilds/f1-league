@@ -2,12 +2,19 @@ import { desc, eq, sql } from 'drizzle-orm';
 import { redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
-import { leagueSeasons, scoreEvents, seasonStandings, users } from '$lib/server/db/schema';
+import { leagues, leagueSeasons, scoreEvents, seasonStandings, users } from '$lib/server/db/schema';
 import { requireMember } from '$lib/server/authorization';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	if (!locals.user) redirect(303, '/login');
 	await requireMember(locals.user.id, params.id, 'member');
+
+	const [league] = await db
+		.select({ name: leagues.name })
+		.from(leagues)
+		.where(eq(leagues.id, params.id));
+	const leagueId = params.id;
+	const leagueName = league?.name ?? '';
 
 	const [season] = await db
 		.select()
@@ -15,8 +22,17 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		.where(eq(leagueSeasons.leagueId, params.id))
 		.orderBy(desc(leagueSeasons.year));
 
+	const seasonStatus = season?.status ?? null;
+
 	if (!season || (season.status !== 'active' && season.status !== 'archived')) {
-		return { season: null, standings: [], archived: false as const };
+		return {
+			leagueId,
+			leagueName,
+			seasonStatus,
+			season: null,
+			standings: [],
+			archived: false as const
+		};
 	}
 
 	if (season.status === 'archived') {
@@ -35,7 +51,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			.where(eq(seasonStandings.leagueSeasonId, season.id))
 			.orderBy(seasonStandings.rank);
 
-		return { season, standings, archived: true as const };
+		return { leagueId, leagueName, seasonStatus, season, standings, archived: true as const };
 	}
 
 	const standings = await db
@@ -52,5 +68,5 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		.groupBy(scoreEvents.userId, users.displayName, users.avatarColour)
 		.orderBy(desc(sql`sum(${scoreEvents.points})`));
 
-	return { season, standings, archived: false as const };
+	return { leagueId, leagueName, seasonStatus, season, standings, archived: false as const };
 };

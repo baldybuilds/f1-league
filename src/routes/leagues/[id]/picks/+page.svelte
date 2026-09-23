@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { untrack } from 'svelte';
+	import LeagueNav from '$lib/components/league-nav.svelte';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Button } from '$lib/components/ui/button';
 	import {
@@ -36,7 +37,12 @@
 </script>
 
 <div class="flex flex-col gap-6">
-	<h1 class="text-2xl font-semibold tracking-tight">Your pick</h1>
+	<LeagueNav
+		leagueId={data.leagueId}
+		leagueName={data.leagueName}
+		seasonStatus={data.seasonStatus}
+		activePage="picks"
+	/>
 
 	{#if !data.season}
 		<Alert>

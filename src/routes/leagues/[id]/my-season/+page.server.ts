@@ -4,6 +4,7 @@ import type { PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
 import {
 	drivers,
+	leagues,
 	leagueSeasons,
 	memberships,
 	picks,
@@ -19,13 +20,22 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	await requireMember(locals.user.id, params.id, 'member');
 	const userId = locals.user.id;
 
+	const [league] = await db
+		.select({ name: leagues.name })
+		.from(leagues)
+		.where(eq(leagues.id, params.id));
+	const leagueId = params.id;
+	const leagueName = league?.name ?? '';
+
 	const [season] = await db
 		.select()
 		.from(leagueSeasons)
 		.where(eq(leagueSeasons.leagueId, params.id))
 		.orderBy(desc(leagueSeasons.year));
 
-	if (!season) return { season: null };
+	const seasonStatus = season?.status ?? null;
+
+	if (!season) return { leagueId, leagueName, seasonStatus, season: null };
 
 	const eventRows = await db
 		.select({
@@ -97,5 +107,15 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		rank = standings.find((s) => s.userId === userId)?.rank ?? null;
 	}
 
-	return { season, rollup, pickRows, driverRows, rank, frozenStanding };
+	return {
+		leagueId,
+		leagueName,
+		seasonStatus,
+		season,
+		rollup,
+		pickRows,
+		driverRows,
+		rank,
+		frozenStanding
+	};
 };

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import LeagueNav from '$lib/components/league-nav.svelte';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
@@ -8,7 +9,12 @@
 </script>
 
 <div class="flex flex-col gap-6">
-	<h1 class="text-2xl font-semibold tracking-tight">Standings</h1>
+	<LeagueNav
+		leagueId={data.leagueId}
+		leagueName={data.leagueName}
+		seasonStatus={data.seasonStatus}
+		activePage="standings"
+	/>
 
 	{#if !data.season}
 		<Alert>
@@ -50,7 +56,9 @@
 								<span class="text-sm">{row.displayName}</span>
 							</div>
 							<div class="flex items-center gap-3 text-sm">
-								<span class="text-muted-foreground">{row.roundsScored} rounds</span>
+								<span class="text-muted-foreground"
+									>{row.roundsScored} round{row.roundsScored === 1 ? '' : 's'}</span
+								>
 								<span class="font-semibold">{row.totalPoints} pts</span>
 							</div>
 						</div>

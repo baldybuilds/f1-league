@@ -5,10 +5,13 @@ import { db } from '$lib/server/db';
 import { drivers, leagueSeasons, picks, rounds, scoreEvents } from '$lib/server/db/schema';
 import { requireMember } from '$lib/server/authorization';
 import { submitPick } from '$lib/server/picks';
+import { getLeagueNavContext } from '$lib/server/leagues';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	if (!locals.user) redirect(303, '/login');
 	await requireMember(locals.user.id, params.id, 'member');
+
+	const navContext = await getLeagueNavContext(params.id);
 
 	const [season] = await db
 		.select()
@@ -22,7 +25,15 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		.orderBy(drivers.name);
 
 	if (!season) {
-		return { season: null, round: null, currentPick: null, pastPicks: [], drivers: rosterDrivers };
+		return {
+			...navContext,
+			leagueId: params.id,
+			season: null,
+			round: null,
+			currentPick: null,
+			pastPicks: [],
+			drivers: rosterDrivers
+		};
 	}
 
 	const now = new Date();
@@ -74,7 +85,15 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		)
 		.orderBy(desc(rounds.roundNumber));
 
-	return { season, round, currentPick: currentPick ?? null, pastPicks, drivers: rosterDrivers };
+	return {
+		...navContext,
+		leagueId: params.id,
+		season,
+		round,
+		currentPick: currentPick ?? null,
+		pastPicks,
+		drivers: rosterDrivers
+	};
 };
 
 export const actions: Actions = {

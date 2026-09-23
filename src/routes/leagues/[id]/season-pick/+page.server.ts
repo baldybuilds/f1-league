@@ -5,10 +5,13 @@ import { db } from '$lib/server/db';
 import { drivers, leagueSeasons, rounds, seasonPicks } from '$lib/server/db/schema';
 import { requireMember } from '$lib/server/authorization';
 import { submitSeasonPick } from '$lib/server/season-picks';
+import { getLeagueNavContext } from '$lib/server/leagues';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	if (!locals.user) redirect(303, '/login');
 	await requireMember(locals.user.id, params.id, 'member');
+
+	const navContext = await getLeagueNavContext(params.id);
 
 	const [season] = await db
 		.select()
@@ -23,7 +26,15 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	const teams = [...new Set(rosterDrivers.map((d) => d.team))].sort();
 
 	if (!season) {
-		return { season: null, locked: false, currentPick: null, drivers: rosterDrivers, teams };
+		return {
+			...navContext,
+			leagueId: params.id,
+			season: null,
+			locked: false,
+			currentPick: null,
+			drivers: rosterDrivers,
+			teams
+		};
 	}
 
 	const [round1] = await db
@@ -37,7 +48,15 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		.from(seasonPicks)
 		.where(and(eq(seasonPicks.leagueSeasonId, season.id), eq(seasonPicks.userId, locals.user.id)));
 
-	return { season, locked, currentPick: currentPick ?? null, drivers: rosterDrivers, teams };
+	return {
+		...navContext,
+		leagueId: params.id,
+		season,
+		locked,
+		currentPick: currentPick ?? null,
+		drivers: rosterDrivers,
+		teams
+	};
 };
 
 export const actions: Actions = {
