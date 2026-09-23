@@ -1,7 +1,7 @@
 <script lang="ts">
 	import LeagueNav from '$lib/components/league-nav.svelte';
+	import RankBadge from '$lib/components/rank-badge.svelte';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
-	import { Badge } from '$lib/components/ui/badge';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import type { PageProps } from './$types';
 
@@ -34,7 +34,7 @@
 					{#each data.standings as row (row.userId)}
 						<div class="flex items-center justify-between">
 							<div class="flex items-center gap-3">
-								<Badge variant="outline">{row.rank}</Badge>
+								<RankBadge rank={row.rank} />
 								<span
 									class="border-border inline-block size-3 rounded-full border"
 									style:background-color={row.avatarColour}
@@ -48,7 +48,7 @@
 					{#each data.standings as row, i (row.userId)}
 						<div class="flex items-center justify-between">
 							<div class="flex items-center gap-3">
-								<Badge variant="outline">{i + 1}</Badge>
+								<RankBadge rank={i + 1} />
 								<span
 									class="border-border inline-block size-3 rounded-full border"
 									style:background-color={row.avatarColour}

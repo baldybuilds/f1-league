@@ -15,7 +15,13 @@
 <div class="flex min-h-screen flex-col">
 	<header class="border-border border-b">
 		<div class="mx-auto flex max-w-2xl items-center justify-between px-4 py-4">
-			<a href={resolve('/')} class="text-lg font-semibold tracking-tight">Paddock Picks</a>
+			<a href={resolve('/')} class="flex items-center gap-2.5 text-lg tracking-tight">
+				<span
+					class="bg-primary inline-block h-[22px] w-[10px] rounded-[2px]"
+					style="transform: skewX(-12deg);"
+				></span>
+				Paddock Picks
+			</a>
 			{#if data.user}
 				<div class="flex min-w-0 items-center gap-3">
 					<Button href={resolve('/career')} variant="ghost" size="sm">Career</Button>

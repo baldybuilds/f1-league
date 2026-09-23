@@ -19,6 +19,21 @@ const db = drizzle(new Pool({ connectionString: process.env.DATABASE_URL }), {
 	schema: { drivers, rounds }
 });
 
+// Team colours only, per documentation/PLAN.md's branding rule - no logos, no
+// headshots. Used as small UI accents (driver chips, select lists).
+const TEAM_COLORS: Record<string, string> = {
+	'Red Bull Racing': '#3671C6',
+	Ferrari: '#E8002D',
+	McLaren: '#FF8000',
+	Mercedes: '#27F4D2',
+	'Aston Martin': '#229971',
+	Alpine: '#FF87BC',
+	Haas: '#B6BABD',
+	Williams: '#64C4FF',
+	RB: '#6692FF',
+	'Kick Sauber': '#52E252'
+};
+
 const DRIVER_ROSTER = [
 	{ code: 'VER', name: 'Max Verstappen', team: 'Red Bull Racing', number: 1 },
 	{ code: 'PER', name: 'Sergio Perez', team: 'Red Bull Racing', number: 11 },
@@ -55,12 +70,13 @@ const TEST_ROUNDS = [
 
 async function main() {
 	for (const driver of DRIVER_ROSTER) {
+		const teamColor = TEAM_COLORS[driver.team];
 		await db
 			.insert(drivers)
-			.values(driver)
+			.values({ ...driver, teamColor })
 			.onConflictDoUpdate({
 				target: drivers.code,
-				set: { name: driver.name, team: driver.team, number: driver.number }
+				set: { name: driver.name, team: driver.team, number: driver.number, teamColor }
 			});
 	}
 	console.log(`Seeded ${DRIVER_ROSTER.length} drivers.`);

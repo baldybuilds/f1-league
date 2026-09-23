@@ -23,7 +23,9 @@ export default defineConfig({
 					// those without unsafe-inline. Deliberate tradeoff: much smaller
 					// risk than script-src unsafe-inline (no JS execution), and needed
 					// by virtually every serious Svelte/React component library.
-					'style-src': ['self', 'unsafe-inline'],
+					'style-src': ['self', 'unsafe-inline', 'https://fonts.googleapis.com'],
+					// Titillium Web + Inter, loaded from Google Fonts - see src/app.html.
+					'font-src': ['self', 'https://fonts.gstatic.com'],
 					'img-src': ['self', 'data:'],
 					'base-uri': ['self'],
 					'form-action': ['self'],

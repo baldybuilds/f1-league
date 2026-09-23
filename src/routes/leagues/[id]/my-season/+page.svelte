@@ -16,6 +16,11 @@
 		return driver ? `${driver.code}` : 'Unknown';
 	}
 
+	function driverColor(id: string | null) {
+		if (!id) return '#3A3F46';
+		return driverById.get(id)?.teamColor ?? '#3A3F46';
+	}
+
 	function pct(rate: number) {
 		return `${Math.round(rate * 100)}%`;
 	}
@@ -116,11 +121,20 @@
 				</CardHeader>
 				<CardContent class="flex flex-col gap-2">
 					{#each data.pickRows as pick (pick.roundNumber)}
-						<div class="flex items-center justify-between text-sm">
-							<span>
-								Round {pick.roundNumber} - {pick.roundName}: your pick {driverLabel(
-									pick.p1DriverId
-								)}/{driverLabel(pick.p2DriverId)}/{driverLabel(pick.p3DriverId)}
+						<div class="flex flex-wrap items-center justify-between gap-2 text-sm">
+							<span class="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+								<span class="text-muted-foreground"
+									>Round {pick.roundNumber} - {pick.roundName}: your pick</span
+								>
+								{#each [pick.p1DriverId, pick.p2DriverId, pick.p3DriverId] as driverId (driverId)}
+									<span class="inline-flex items-center gap-1">
+										<span
+											class="inline-block size-2 shrink-0 rounded-full"
+											style:background-color={driverColor(driverId)}
+										></span>
+										{driverLabel(driverId)}
+									</span>
+								{/each}
 							</span>
 							{#if pick.resultP1Id}
 								<Badge variant="outline">

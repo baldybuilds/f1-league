@@ -184,6 +184,7 @@ export const drivers = pgTable(
 		code: text('code').notNull(),
 		name: text('name').notNull(),
 		team: text('team').notNull(),
+		teamColor: text('team_color'),
 		number: integer('number'),
 		active: boolean('active').notNull().default(true),
 		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()

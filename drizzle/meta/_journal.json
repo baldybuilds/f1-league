@@ -29,6 +29,13 @@
       "when": 1790152829115,
       "tag": "0003_loose_harpoon",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790156151133,
+      "tag": "0004_faithful_madelyne_pryor",
+      "breakpoints": true
     }
   ]
 }

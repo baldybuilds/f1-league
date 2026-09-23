@@ -30,6 +30,8 @@
 	let wdcWinnerDriverId = $state('');
 	let wccWinnerTeam = $state('');
 
+	const teamColorByName = $derived(new Map((data.drivers ?? []).map((d) => [d.team, d.teamColor])));
+
 	function confirmArchive(event: SubmitEvent) {
 		if (!confirm("Archive the season? This can't be undone.")) {
 			event.preventDefault();
@@ -117,8 +119,13 @@
 										<SelectItem
 											value={driver.id}
 											label="{driver.code} - {driver.name} ({driver.team})"
-											>{driver.code} - {driver.name} ({driver.team})</SelectItem
 										>
+											<span
+												class="inline-block size-2 shrink-0 rounded-full"
+												style:background-color={driver.teamColor ?? '#3A3F46'}
+											></span>
+											{driver.code} - {driver.name} ({driver.team})
+										</SelectItem>
 									{/each}
 								</SelectContent>
 							</Select>
@@ -135,8 +142,13 @@
 										<SelectItem
 											value={driver.id}
 											label="{driver.code} - {driver.name} ({driver.team})"
-											>{driver.code} - {driver.name} ({driver.team})</SelectItem
 										>
+											<span
+												class="inline-block size-2 shrink-0 rounded-full"
+												style:background-color={driver.teamColor ?? '#3A3F46'}
+											></span>
+											{driver.code} - {driver.name} ({driver.team})
+										</SelectItem>
 									{/each}
 								</SelectContent>
 							</Select>
@@ -153,8 +165,13 @@
 										<SelectItem
 											value={driver.id}
 											label="{driver.code} - {driver.name} ({driver.team})"
-											>{driver.code} - {driver.name} ({driver.team})</SelectItem
 										>
+											<span
+												class="inline-block size-2 shrink-0 rounded-full"
+												style:background-color={driver.teamColor ?? '#3A3F46'}
+											></span>
+											{driver.code} - {driver.name} ({driver.team})
+										</SelectItem>
 									{/each}
 								</SelectContent>
 							</Select>
@@ -203,8 +220,13 @@
 										<SelectItem
 											value={driver.id}
 											label="{driver.code} - {driver.name} ({driver.team})"
-											>{driver.code} - {driver.name} ({driver.team})</SelectItem
 										>
+											<span
+												class="inline-block size-2 shrink-0 rounded-full"
+												style:background-color={driver.teamColor ?? '#3A3F46'}
+											></span>
+											{driver.code} - {driver.name} ({driver.team})
+										</SelectItem>
 									{/each}
 								</SelectContent>
 							</Select>
@@ -218,7 +240,13 @@
 								</SelectTrigger>
 								<SelectContent>
 									{#each data.teams as team (team)}
-										<SelectItem value={team} label={team}>{team}</SelectItem>
+										<SelectItem value={team} label={team}>
+											<span
+												class="inline-block size-2 shrink-0 rounded-full"
+												style:background-color={teamColorByName.get(team) ?? '#3A3F46'}
+											></span>
+											{team}
+										</SelectItem>
 									{/each}
 								</SelectContent>
 							</Select>

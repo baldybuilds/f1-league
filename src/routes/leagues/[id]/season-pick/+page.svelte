@@ -25,6 +25,8 @@
 
 	let wdcDriverId = $state(untrack(() => data.currentPick?.wdcDriverId ?? ''));
 	let wccTeam = $state(untrack(() => data.currentPick?.wccTeam ?? ''));
+
+	const teamColorByName = $derived(new Map(data.drivers.map((d) => [d.team, d.teamColor])));
 </script>
 
 <div class="flex flex-col gap-6">
@@ -80,8 +82,13 @@
 									<SelectItem
 										value={driver.id}
 										label="{driver.code} - {driver.name} ({driver.team})"
-										>{driver.code} - {driver.name} ({driver.team})</SelectItem
 									>
+										<span
+											class="inline-block size-2 shrink-0 rounded-full"
+											style:background-color={driver.teamColor ?? '#3A3F46'}
+										></span>
+										{driver.code} - {driver.name} ({driver.team})
+									</SelectItem>
 								{/each}
 							</SelectContent>
 						</Select>
@@ -95,7 +102,13 @@
 							</SelectTrigger>
 							<SelectContent>
 								{#each data.teams as team (team)}
-									<SelectItem value={team} label={team}>{team}</SelectItem>
+									<SelectItem value={team} label={team}>
+										<span
+											class="inline-block size-2 shrink-0 rounded-full"
+											style:background-color={teamColorByName.get(team) ?? '#3A3F46'}
+										></span>
+										{team}
+									</SelectItem>
 								{/each}
 							</SelectContent>
 						</Select>

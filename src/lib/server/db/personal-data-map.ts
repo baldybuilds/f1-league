@@ -91,6 +91,7 @@ export const personalDataMap: Record<string, DataClassification> = {
 	'drivers.code': 'non-personal',
 	'drivers.name': 'non-personal',
 	'drivers.team': 'non-personal',
+	'drivers.team_color': 'non-personal',
 	'drivers.number': 'non-personal',
 	'drivers.active': 'non-personal',
 	'drivers.created_at': 'non-personal',
