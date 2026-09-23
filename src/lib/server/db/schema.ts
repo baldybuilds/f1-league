@@ -24,6 +24,7 @@ export const leagueSeasonStatusEnum = pgEnum('league_season_status', [
 ]);
 export const membershipRoleEnum = pgEnum('membership_role', ['owner', 'admin', 'member']);
 export const membershipStatusEnum = pgEnum('membership_status', ['pending', 'active', 'removed']);
+export const roundStatusEnum = pgEnum('round_status', ['upcoming', 'locked', 'completed']);
 
 export const users = pgTable(
 	'users',
@@ -169,6 +170,99 @@ export const seasonEntries = pgTable(
 		uniqueIndex('season_entries_league_season_id_user_id_key').on(
 			table.leagueSeasonId,
 			table.userId
+		)
+	]
+);
+
+export const drivers = pgTable(
+	'drivers',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		code: text('code').notNull(),
+		name: text('name').notNull(),
+		team: text('team').notNull(),
+		number: integer('number'),
+		active: boolean('active').notNull().default(true),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => [uniqueIndex('drivers_code_key').on(table.code)]
+);
+
+export const rounds = pgTable(
+	'rounds',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		year: integer('year').notNull(),
+		roundNumber: integer('round_number').notNull(),
+		name: text('name').notNull(),
+		lockAt: timestamp('lock_at', { withTimezone: true }).notNull(),
+		status: roundStatusEnum('status').notNull().default('upcoming'),
+		resultP1Id: uuid('result_p1_id').references(() => drivers.id),
+		resultP2Id: uuid('result_p2_id').references(() => drivers.id),
+		resultP3Id: uuid('result_p3_id').references(() => drivers.id),
+		resultEnteredAt: timestamp('result_entered_at', { withTimezone: true }),
+		resultEnteredBy: uuid('result_entered_by').references(() => users.id),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => [uniqueIndex('rounds_year_round_number_key').on(table.year, table.roundNumber)]
+);
+
+export const picks = pgTable(
+	'picks',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		leagueSeasonId: uuid('league_season_id')
+			.notNull()
+			.references(() => leagueSeasons.id),
+		userId: uuid('user_id')
+			.notNull()
+			.references(() => users.id),
+		roundId: uuid('round_id')
+			.notNull()
+			.references(() => rounds.id),
+		p1DriverId: uuid('p1_driver_id')
+			.notNull()
+			.references(() => drivers.id),
+		p2DriverId: uuid('p2_driver_id')
+			.notNull()
+			.references(() => drivers.id),
+		p3DriverId: uuid('p3_driver_id')
+			.notNull()
+			.references(() => drivers.id),
+		submittedAt: timestamp('submitted_at', { withTimezone: true }).notNull().defaultNow(),
+		updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => [
+		uniqueIndex('picks_league_season_id_user_id_round_id_key').on(
+			table.leagueSeasonId,
+			table.userId,
+			table.roundId
+		)
+	]
+);
+
+export const scoreEvents = pgTable(
+	'score_events',
+	{
+		id: uuid('id').primaryKey().defaultRandom(),
+		leagueSeasonId: uuid('league_season_id')
+			.notNull()
+			.references(() => leagueSeasons.id),
+		userId: uuid('user_id')
+			.notNull()
+			.references(() => users.id),
+		roundId: uuid('round_id')
+			.notNull()
+			.references(() => rounds.id),
+		points: integer('points').notNull(),
+		breakdown: jsonb('breakdown').notNull().default({}),
+		createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
+	},
+	(table) => [
+		uniqueIndex('score_events_league_season_id_user_id_round_id_key').on(
+			table.leagueSeasonId,
+			table.userId,
+			table.roundId
 		)
 	]
 );

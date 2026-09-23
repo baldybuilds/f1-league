@@ -85,6 +85,48 @@ export const personalDataMap: Record<string, DataClassification> = {
 	'invites.approval_required': 'non-personal',
 	'invites.created_at': 'non-personal',
 
+	'drivers.id': 'non-personal',
+	'drivers.code': 'non-personal',
+	'drivers.name': 'non-personal',
+	'drivers.team': 'non-personal',
+	'drivers.number': 'non-personal',
+	'drivers.active': 'non-personal',
+	'drivers.created_at': 'non-personal',
+
+	'rounds.id': 'non-personal',
+	'rounds.year': 'non-personal',
+	'rounds.round_number': 'non-personal',
+	'rounds.name': 'non-personal',
+	'rounds.lock_at': 'non-personal',
+	'rounds.status': 'non-personal',
+	'rounds.result_p1_id': 'non-personal',
+	'rounds.result_p2_id': 'non-personal',
+	'rounds.result_p3_id': 'non-personal',
+	'rounds.result_entered_at': 'non-personal',
+	'rounds.result_entered_by': 'non-personal',
+	'rounds.created_at': 'non-personal',
+
+	// A player's pick is their prediction, not a fact about them, but it's
+	// tied to their account - treat it as personal per PLAN.md's "what we
+	// hold" list ("picks, answers, scores").
+	'picks.id': 'non-personal',
+	'picks.league_season_id': 'non-personal',
+	'picks.user_id': 'non-personal',
+	'picks.round_id': 'non-personal',
+	'picks.p1_driver_id': 'personal',
+	'picks.p2_driver_id': 'personal',
+	'picks.p3_driver_id': 'personal',
+	'picks.submitted_at': 'personal',
+	'picks.updated_at': 'personal',
+
+	'score_events.id': 'non-personal',
+	'score_events.league_season_id': 'non-personal',
+	'score_events.user_id': 'non-personal',
+	'score_events.round_id': 'non-personal',
+	'score_events.points': 'personal',
+	'score_events.breakdown': 'personal',
+	'score_events.created_at': 'non-personal',
+
 	// metadata must never have raw PII written into it - enforced by review,
 	// not by this map, since its shape varies per audit action.
 	'audit_log.id': 'non-personal',

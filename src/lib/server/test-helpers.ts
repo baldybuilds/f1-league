@@ -10,7 +10,9 @@ import {
 	leagueSeasons,
 	invites,
 	leagues,
-	auditLog
+	auditLog,
+	picks,
+	scoreEvents
 } from './db/schema';
 
 let counter = 0;
@@ -42,6 +44,8 @@ export async function deleteTestUser(userId: string, email: string) {
 	await db.delete(authSessions).where(eq(authSessions.userId, userId));
 	await db.delete(loginTokens).where(eq(loginTokens.email, email));
 	await db.delete(policyAcceptances).where(eq(policyAcceptances.userId, userId));
+	await db.delete(scoreEvents).where(eq(scoreEvents.userId, userId));
+	await db.delete(picks).where(eq(picks.userId, userId));
 	await db.delete(seasonEntries).where(eq(seasonEntries.userId, userId));
 	await db.delete(memberships).where(eq(memberships.userId, userId));
 	await db.delete(users).where(eq(users.id, userId));
@@ -54,6 +58,8 @@ export async function deleteTestLeague(leagueId: string) {
 		.where(eq(leagueSeasons.leagueId, leagueId));
 
 	for (const season of seasons) {
+		await db.delete(scoreEvents).where(eq(scoreEvents.leagueSeasonId, season.id));
+		await db.delete(picks).where(eq(picks.leagueSeasonId, season.id));
 		await db.delete(seasonEntries).where(eq(seasonEntries.leagueSeasonId, season.id));
 	}
 
