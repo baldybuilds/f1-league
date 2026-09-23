@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { resolve } from '$app/paths';
 	import LeagueNav from '$lib/components/league-nav.svelte';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert';
 	import { Badge } from '$lib/components/ui/badge';
@@ -60,29 +59,10 @@
 			</CardHeader>
 			<CardContent class="flex flex-wrap items-center gap-3">
 				{#if data.season?.status === 'active'}
-					<Button href={resolve('/leagues/[id]/picks', { id: data.league.id })}
-						>Make your pick</Button
-					>
-					<Button
-						href={resolve('/leagues/[id]/season-pick', { id: data.league.id })}
-						variant="outline">Season pick</Button
-					>
-					<Button
-						href={resolve('/leagues/[id]/standings', { id: data.league.id })}
-						variant="outline">Standings</Button
-					>
-					<Button
-						href={resolve('/leagues/[id]/my-season', { id: data.league.id })}
-						variant="outline">My season</Button
-					>
+					<p class="text-muted-foreground text-sm">
+						Pick, review standings and check your season from the tabs above.
+					</p>
 				{:else if data.season?.status === 'archived'}
-					<Button href={resolve('/leagues/[id]/standings', { id: data.league.id })}
-						>Final standings</Button
-					>
-					<Button
-						href={resolve('/leagues/[id]/my-season', { id: data.league.id })}
-						variant="outline">My season</Button
-					>
 					<p class="text-muted-foreground text-sm">This season is archived - results are final.</p>
 				{:else if data.isAdminOrOwner && data.season?.status === 'setup'}
 					<form method="POST" action="?/activateSeason" use:enhance>
@@ -134,7 +114,9 @@
 								</SelectTrigger>
 								<SelectContent>
 									{#each data.drivers as driver (driver.id)}
-										<SelectItem value={driver.id}
+										<SelectItem
+											value={driver.id}
+											label="{driver.code} - {driver.name} ({driver.team})"
 											>{driver.code} - {driver.name} ({driver.team})</SelectItem
 										>
 									{/each}
@@ -150,7 +132,9 @@
 								</SelectTrigger>
 								<SelectContent>
 									{#each data.drivers as driver (driver.id)}
-										<SelectItem value={driver.id}
+										<SelectItem
+											value={driver.id}
+											label="{driver.code} - {driver.name} ({driver.team})"
 											>{driver.code} - {driver.name} ({driver.team})</SelectItem
 										>
 									{/each}
@@ -166,7 +150,9 @@
 								</SelectTrigger>
 								<SelectContent>
 									{#each data.drivers as driver (driver.id)}
-										<SelectItem value={driver.id}
+										<SelectItem
+											value={driver.id}
+											label="{driver.code} - {driver.name} ({driver.team})"
 											>{driver.code} - {driver.name} ({driver.team})</SelectItem
 										>
 									{/each}
@@ -214,7 +200,9 @@
 								</SelectTrigger>
 								<SelectContent>
 									{#each data.drivers as driver (driver.id)}
-										<SelectItem value={driver.id}
+										<SelectItem
+											value={driver.id}
+											label="{driver.code} - {driver.name} ({driver.team})"
 											>{driver.code} - {driver.name} ({driver.team})</SelectItem
 										>
 									{/each}
@@ -230,7 +218,7 @@
 								</SelectTrigger>
 								<SelectContent>
 									{#each data.teams as team (team)}
-										<SelectItem value={team}>{team}</SelectItem>
+										<SelectItem value={team} label={team}>{team}</SelectItem>
 									{/each}
 								</SelectContent>
 							</Select>

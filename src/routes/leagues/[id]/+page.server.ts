@@ -20,70 +20,64 @@ import { archiveSeason } from '$lib/server/archive';
 export const load: PageServerLoad = async ({ params, locals }) => {
 	if (!locals.user) redirect(303, '/login');
 
-	const [membership] = await db
-		.select()
-		.from(memberships)
-		.where(and(eq(memberships.leagueId, params.id), eq(memberships.userId, locals.user.id)));
+	const [[membership], [league], [season]] = await Promise.all([
+		db
+			.select()
+			.from(memberships)
+			.where(and(eq(memberships.leagueId, params.id), eq(memberships.userId, locals.user.id))),
+		db.select().from(leagues).where(eq(leagues.id, params.id)),
+		db
+			.select()
+			.from(leagueSeasons)
+			.where(eq(leagueSeasons.leagueId, params.id))
+			.orderBy(leagueSeasons.year)
+	]);
 
 	if (!membership) error(404, 'League not found.');
-
-	const [league] = await db.select().from(leagues).where(eq(leagues.id, params.id));
 	if (!league) error(404, 'League not found.');
-
-	const [season] = await db
-		.select()
-		.from(leagueSeasons)
-		.where(eq(leagueSeasons.leagueId, params.id))
-		.orderBy(leagueSeasons.year);
 
 	if (membership.status !== 'active') {
 		return { league, season, membership, members: null, invites: null, isAdminOrOwner: false };
 	}
 
 	const isAdminOrOwner = membership.role === 'owner' || membership.role === 'admin';
+	const canManageActiveSeason = isAdminOrOwner && season?.status === 'active';
 
-	const members = await db
-		.select({
-			membershipId: memberships.id,
-			displayName: users.displayName,
-			avatarColour: users.avatarColour,
-			role: memberships.role,
-			status: memberships.status
-		})
-		.from(memberships)
-		.innerJoin(users, eq(memberships.userId, users.id))
-		.where(eq(memberships.leagueId, params.id))
-		.orderBy(memberships.createdAt);
-
-	const leagueInvites = isAdminOrOwner
-		? await db
-				.select()
-				.from(invites)
-				.where(eq(invites.leagueId, params.id))
-				.orderBy(invites.createdAt)
-		: null;
-
-	let roundNeedingResult = null;
-	let rosterDrivers: (typeof drivers.$inferSelect)[] = [];
-	if (isAdminOrOwner && season?.status === 'active') {
-		[roundNeedingResult] = await db
-			.select()
-			.from(rounds)
-			.where(
-				and(
-					eq(rounds.year, season.year),
-					lte(rounds.lockAt, new Date()),
-					isNull(rounds.resultEnteredAt)
-				)
-			)
-			.orderBy(rounds.roundNumber)
-			.limit(1);
-		rosterDrivers = await db
-			.select()
-			.from(drivers)
-			.where(eq(drivers.active, true))
-			.orderBy(drivers.name);
-	}
+	const [members, leagueInvites, roundNeedingResultRows, rosterDrivers] = await Promise.all([
+		db
+			.select({
+				membershipId: memberships.id,
+				displayName: users.displayName,
+				avatarColour: users.avatarColour,
+				role: memberships.role,
+				status: memberships.status
+			})
+			.from(memberships)
+			.innerJoin(users, eq(memberships.userId, users.id))
+			.where(eq(memberships.leagueId, params.id))
+			.orderBy(memberships.createdAt),
+		isAdminOrOwner
+			? db.select().from(invites).where(eq(invites.leagueId, params.id)).orderBy(invites.createdAt)
+			: Promise.resolve(null),
+		canManageActiveSeason && season
+			? db
+					.select()
+					.from(rounds)
+					.where(
+						and(
+							eq(rounds.year, season.year),
+							lte(rounds.lockAt, new Date()),
+							isNull(rounds.resultEnteredAt)
+						)
+					)
+					.orderBy(rounds.roundNumber)
+					.limit(1)
+			: Promise.resolve([]),
+		canManageActiveSeason
+			? db.select().from(drivers).where(eq(drivers.active, true)).orderBy(drivers.name)
+			: Promise.resolve([])
+	]);
+	const roundNeedingResult = roundNeedingResultRows[0] ?? null;
 
 	return {
 		league,

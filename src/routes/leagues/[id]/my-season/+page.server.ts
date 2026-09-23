@@ -20,54 +20,51 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	await requireMember(locals.user.id, params.id, 'member');
 	const userId = locals.user.id;
 
-	const [league] = await db
-		.select({ name: leagues.name })
-		.from(leagues)
-		.where(eq(leagues.id, params.id));
+	const [[league], [season]] = await Promise.all([
+		db.select({ name: leagues.name }).from(leagues).where(eq(leagues.id, params.id)),
+		db
+			.select()
+			.from(leagueSeasons)
+			.where(eq(leagueSeasons.leagueId, params.id))
+			.orderBy(desc(leagueSeasons.year))
+	]);
 	const leagueId = params.id;
 	const leagueName = league?.name ?? '';
-
-	const [season] = await db
-		.select()
-		.from(leagueSeasons)
-		.where(eq(leagueSeasons.leagueId, params.id))
-		.orderBy(desc(leagueSeasons.year));
-
 	const seasonStatus = season?.status ?? null;
 
 	if (!season) return { leagueId, leagueName, seasonStatus, season: null };
 
-	const eventRows = await db
-		.select({
-			roundId: scoreEvents.roundId,
-			roundNumber: rounds.roundNumber,
-			points: scoreEvents.points,
-			breakdown: scoreEvents.breakdown
-		})
-		.from(scoreEvents)
-		.innerJoin(rounds, eq(scoreEvents.roundId, rounds.id))
-		.where(and(eq(scoreEvents.leagueSeasonId, season.id), eq(scoreEvents.userId, userId)))
-		.orderBy(rounds.roundNumber);
+	const [eventRows, pickRows, driverRows] = await Promise.all([
+		db
+			.select({
+				roundId: scoreEvents.roundId,
+				roundNumber: rounds.roundNumber,
+				points: scoreEvents.points,
+				breakdown: scoreEvents.breakdown
+			})
+			.from(scoreEvents)
+			.innerJoin(rounds, eq(scoreEvents.roundId, rounds.id))
+			.where(and(eq(scoreEvents.leagueSeasonId, season.id), eq(scoreEvents.userId, userId)))
+			.orderBy(rounds.roundNumber),
+		db
+			.select({
+				roundNumber: rounds.roundNumber,
+				roundName: rounds.name,
+				p1DriverId: picks.p1DriverId,
+				p2DriverId: picks.p2DriverId,
+				p3DriverId: picks.p3DriverId,
+				resultP1Id: rounds.resultP1Id,
+				resultP2Id: rounds.resultP2Id,
+				resultP3Id: rounds.resultP3Id
+			})
+			.from(picks)
+			.innerJoin(rounds, eq(picks.roundId, rounds.id))
+			.where(and(eq(picks.leagueSeasonId, season.id), eq(picks.userId, userId)))
+			.orderBy(desc(rounds.roundNumber)),
+		db.select().from(drivers)
+	]);
 
 	const rollup = computeUserStatRollup(eventRows);
-
-	const pickRows = await db
-		.select({
-			roundNumber: rounds.roundNumber,
-			roundName: rounds.name,
-			p1DriverId: picks.p1DriverId,
-			p2DriverId: picks.p2DriverId,
-			p3DriverId: picks.p3DriverId,
-			resultP1Id: rounds.resultP1Id,
-			resultP2Id: rounds.resultP2Id,
-			resultP3Id: rounds.resultP3Id
-		})
-		.from(picks)
-		.innerJoin(rounds, eq(picks.roundId, rounds.id))
-		.where(and(eq(picks.leagueSeasonId, season.id), eq(picks.userId, userId)))
-		.orderBy(desc(rounds.roundNumber));
-
-	const driverRows = await db.select().from(drivers);
 
 	let rank: number | null = null;
 	let frozenStanding: typeof seasonStandings.$inferSelect | null = null;
@@ -82,18 +79,20 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		frozenStanding = row ?? null;
 		rank = row?.rank ?? null;
 	} else if (season.status === 'active') {
-		const activeMembers = await db
-			.select({ userId: memberships.userId })
-			.from(memberships)
-			.where(and(eq(memberships.leagueId, params.id), eq(memberships.status, 'active')));
-		const sumsRows = await db
-			.select({
-				userId: scoreEvents.userId,
-				regularPoints: sql<number>`sum(${scoreEvents.points})`.mapWith(Number)
-			})
-			.from(scoreEvents)
-			.where(eq(scoreEvents.leagueSeasonId, season.id))
-			.groupBy(scoreEvents.userId);
+		const [activeMembers, sumsRows] = await Promise.all([
+			db
+				.select({ userId: memberships.userId })
+				.from(memberships)
+				.where(and(eq(memberships.leagueId, params.id), eq(memberships.status, 'active'))),
+			db
+				.select({
+					userId: scoreEvents.userId,
+					regularPoints: sql<number>`sum(${scoreEvents.points})`.mapWith(Number)
+				})
+				.from(scoreEvents)
+				.where(eq(scoreEvents.leagueSeasonId, season.id))
+				.groupBy(scoreEvents.userId)
+		]);
 		const sumsByUser = new Map(sumsRows.map((r) => [r.userId, r.regularPoints]));
 		const standings = computeSeasonStandings(
 			activeMembers.map((m) => ({

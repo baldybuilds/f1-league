@@ -82,7 +82,9 @@
 							</SelectTrigger>
 							<SelectContent>
 								{#each data.drivers as driver (driver.id)}
-									<SelectItem value={driver.id}
+									<SelectItem
+										value={driver.id}
+										label="{driver.code} - {driver.name} ({driver.team})"
 										>{driver.code} - {driver.name} ({driver.team})</SelectItem
 									>
 								{/each}
@@ -98,7 +100,9 @@
 							</SelectTrigger>
 							<SelectContent>
 								{#each data.drivers as driver (driver.id)}
-									<SelectItem value={driver.id}
+									<SelectItem
+										value={driver.id}
+										label="{driver.code} - {driver.name} ({driver.team})"
 										>{driver.code} - {driver.name} ({driver.team})</SelectItem
 									>
 								{/each}
@@ -114,7 +118,9 @@
 							</SelectTrigger>
 							<SelectContent>
 								{#each data.drivers as driver (driver.id)}
-									<SelectItem value={driver.id}
+									<SelectItem
+										value={driver.id}
+										label="{driver.code} - {driver.name} ({driver.team})"
 										>{driver.code} - {driver.name} ({driver.team})</SelectItem
 									>
 								{/each}

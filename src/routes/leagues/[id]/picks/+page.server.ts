@@ -2,32 +2,34 @@ import { and, desc, eq, gt, lte } from 'drizzle-orm';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { db } from '$lib/server/db';
-import { drivers, leagueSeasons, picks, rounds, scoreEvents } from '$lib/server/db/schema';
+import { drivers, leagues, leagueSeasons, picks, rounds, scoreEvents } from '$lib/server/db/schema';
 import { requireMember } from '$lib/server/authorization';
 import { submitPick } from '$lib/server/picks';
-import { getLeagueNavContext } from '$lib/server/leagues';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	if (!locals.user) redirect(303, '/login');
 	await requireMember(locals.user.id, params.id, 'member');
+	const userId = locals.user.id;
 
-	const navContext = await getLeagueNavContext(params.id);
+	const [[league], [season], rosterDrivers] = await Promise.all([
+		db.select({ name: leagues.name }).from(leagues).where(eq(leagues.id, params.id)),
+		db
+			.select()
+			.from(leagueSeasons)
+			.where(eq(leagueSeasons.leagueId, params.id))
+			.orderBy(desc(leagueSeasons.year)),
+		db.select().from(drivers).where(eq(drivers.active, true)).orderBy(drivers.name)
+	]);
 
-	const [season] = await db
-		.select()
-		.from(leagueSeasons)
-		.where(and(eq(leagueSeasons.leagueId, params.id), eq(leagueSeasons.status, 'active')));
+	const leagueId = params.id;
+	const leagueName = league?.name ?? '';
+	const seasonStatus = season?.status ?? null;
 
-	const rosterDrivers = await db
-		.select()
-		.from(drivers)
-		.where(eq(drivers.active, true))
-		.orderBy(drivers.name);
-
-	if (!season) {
+	if (!season || season.status !== 'active') {
 		return {
-			...navContext,
-			leagueId: params.id,
+			leagueId,
+			leagueName,
+			seasonStatus,
 			season: null,
 			round: null,
 			currentPick: null,
@@ -37,12 +39,37 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	}
 
 	const now = new Date();
-	const [round] = await db
-		.select()
-		.from(rounds)
-		.where(and(eq(rounds.year, season.year), gt(rounds.lockAt, now)))
-		.orderBy(rounds.roundNumber)
-		.limit(1);
+	const [[round], pastPicks] = await Promise.all([
+		db
+			.select()
+			.from(rounds)
+			.where(and(eq(rounds.year, season.year), gt(rounds.lockAt, now)))
+			.orderBy(rounds.roundNumber)
+			.limit(1),
+		db
+			.select({
+				roundName: rounds.name,
+				roundNumber: rounds.roundNumber,
+				p1DriverId: picks.p1DriverId,
+				p2DriverId: picks.p2DriverId,
+				p3DriverId: picks.p3DriverId,
+				points: scoreEvents.points
+			})
+			.from(picks)
+			.innerJoin(rounds, eq(picks.roundId, rounds.id))
+			.leftJoin(
+				scoreEvents,
+				and(
+					eq(scoreEvents.leagueSeasonId, picks.leagueSeasonId),
+					eq(scoreEvents.userId, picks.userId),
+					eq(scoreEvents.roundId, picks.roundId)
+				)
+			)
+			.where(
+				and(eq(picks.leagueSeasonId, season.id), eq(picks.userId, userId), lte(rounds.lockAt, now))
+			)
+			.orderBy(desc(rounds.roundNumber))
+	]);
 
 	const [currentPick] = round
 		? await db
@@ -51,43 +78,16 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 				.where(
 					and(
 						eq(picks.leagueSeasonId, season.id),
-						eq(picks.userId, locals.user.id),
+						eq(picks.userId, userId),
 						eq(picks.roundId, round.id)
 					)
 				)
 		: [];
 
-	const pastPicks = await db
-		.select({
-			roundName: rounds.name,
-			roundNumber: rounds.roundNumber,
-			p1DriverId: picks.p1DriverId,
-			p2DriverId: picks.p2DriverId,
-			p3DriverId: picks.p3DriverId,
-			points: scoreEvents.points
-		})
-		.from(picks)
-		.innerJoin(rounds, eq(picks.roundId, rounds.id))
-		.leftJoin(
-			scoreEvents,
-			and(
-				eq(scoreEvents.leagueSeasonId, picks.leagueSeasonId),
-				eq(scoreEvents.userId, picks.userId),
-				eq(scoreEvents.roundId, picks.roundId)
-			)
-		)
-		.where(
-			and(
-				eq(picks.leagueSeasonId, season.id),
-				eq(picks.userId, locals.user.id),
-				lte(rounds.lockAt, now)
-			)
-		)
-		.orderBy(desc(rounds.roundNumber));
-
 	return {
-		...navContext,
-		leagueId: params.id,
+		leagueId,
+		leagueName,
+		seasonStatus,
 		season,
 		round,
 		currentPick: currentPick ?? null,

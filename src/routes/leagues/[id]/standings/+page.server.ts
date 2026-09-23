@@ -9,19 +9,16 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	if (!locals.user) redirect(303, '/login');
 	await requireMember(locals.user.id, params.id, 'member');
 
-	const [league] = await db
-		.select({ name: leagues.name })
-		.from(leagues)
-		.where(eq(leagues.id, params.id));
+	const [[league], [season]] = await Promise.all([
+		db.select({ name: leagues.name }).from(leagues).where(eq(leagues.id, params.id)),
+		db
+			.select()
+			.from(leagueSeasons)
+			.where(eq(leagueSeasons.leagueId, params.id))
+			.orderBy(desc(leagueSeasons.year))
+	]);
 	const leagueId = params.id;
 	const leagueName = league?.name ?? '';
-
-	const [season] = await db
-		.select()
-		.from(leagueSeasons)
-		.where(eq(leagueSeasons.leagueId, params.id))
-		.orderBy(desc(leagueSeasons.year));
-
 	const seasonStatus = season?.status ?? null;
 
 	if (!season || (season.status !== 'active' && season.status !== 'archived')) {
