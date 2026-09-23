@@ -15,6 +15,13 @@
       "when": 1790150154094,
       "tag": "0001_chunky_micromax",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790151912001,
+      "tag": "0002_loose_madame_web",
+      "breakpoints": true
     }
   ]
 }

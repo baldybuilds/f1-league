@@ -26,6 +26,7 @@ const DRIVER_ROSTER = [
 	{ code: 'SAI', name: 'Carlos Sainz', team: 'Ferrari', number: 55 },
 	{ code: 'HAM', name: 'Lewis Hamilton', team: 'Ferrari', number: 44 },
 	{ code: 'RUS', name: 'George Russell', team: 'Mercedes', number: 63 },
+	{ code: 'ANT', name: 'Kimi Antonelli', team: 'Mercedes', number: 12 },
 	{ code: 'NOR', name: 'Lando Norris', team: 'McLaren', number: 4 },
 	{ code: 'PIA', name: 'Oscar Piastri', team: 'McLaren', number: 81 },
 	{ code: 'ALO', name: 'Fernando Alonso', team: 'Aston Martin', number: 14 },

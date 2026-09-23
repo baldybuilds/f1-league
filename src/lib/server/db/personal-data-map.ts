@@ -104,6 +104,7 @@ export const personalDataMap: Record<string, DataClassification> = {
 	'rounds.result_p3_id': 'non-personal',
 	'rounds.result_entered_at': 'non-personal',
 	'rounds.result_entered_by': 'non-personal',
+	'rounds.openf1_session_key': 'non-personal',
 	'rounds.created_at': 'non-personal',
 
 	// A player's pick is their prediction, not a fact about them, but it's

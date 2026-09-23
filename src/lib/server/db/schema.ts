@@ -197,6 +197,7 @@ export const rounds = pgTable(
 		name: text('name').notNull(),
 		lockAt: timestamp('lock_at', { withTimezone: true }).notNull(),
 		status: roundStatusEnum('status').notNull().default('upcoming'),
+		openf1SessionKey: integer('openf1_session_key'),
 		resultP1Id: uuid('result_p1_id').references(() => drivers.id),
 		resultP2Id: uuid('result_p2_id').references(() => drivers.id),
 		resultP3Id: uuid('result_p3_id').references(() => drivers.id),

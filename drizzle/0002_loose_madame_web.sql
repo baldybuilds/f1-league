@@ -1,0 +1,1 @@
+ALTER TABLE "rounds" ADD COLUMN "openf1_session_key" integer;

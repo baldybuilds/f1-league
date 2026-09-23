@@ -46,8 +46,14 @@ export async function enterResult(input: EnterResultInput) {
 		const [season] = await tx
 			.select()
 			.from(leagueSeasons)
-			.where(and(eq(leagueSeasons.leagueId, leagueId), eq(leagueSeasons.year, round.year)));
-		if (!season) throw new Error('This league has no season for this round.');
+			.where(
+				and(
+					eq(leagueSeasons.leagueId, leagueId),
+					eq(leagueSeasons.year, round.year),
+					eq(leagueSeasons.status, 'active')
+				)
+			);
+		if (!season) throw new Error('This league has no active season for this round.');
 
 		const members = await tx
 			.select({ userId: memberships.userId })
